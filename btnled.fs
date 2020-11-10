@@ -17,8 +17,8 @@ GPIOA $C + constant GPIOA_PUPDR ( GPIO port pull-up/pull-down  register )
 
 GPIOA $10 + constant GPIOA_IDR ( GPIO port input data register ) 
 GPIOA $18 + constant GPIOA_BSRR ( GPIO port bit set/reset  register ) 
-: btnUp? ( -- flag )
-    1 6 lshift GPIOA_IDR bit@
+: btnPshd? ( -- flag )
+    1 6 lshift GPIOA_IDR bit@ not
 ;
 : ledOff ( -- )
     1 5 16 + lshift GPIOA_BSRR bis!
@@ -30,10 +30,10 @@ GPIOA $18 + constant GPIOA_BSRR ( GPIO port bit set/reset  register )
 : Slv ( -- ) \ Slave LED to Btn state, LED is on when Btn is pushed.
     initBtnLED
     begin
-        btnUp? if \ Btn released? -- high
-            ledOff
-        else
+        btnPshd? if \ Btn released? -- high
             ledOn
+        else
+            ledOff
         then
         key?
     until

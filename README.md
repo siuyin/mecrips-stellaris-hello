@@ -1,6 +1,7 @@
 # Example programs with mecrisp-stellaris forth on an STM32F030F4
 
-1. blink.fs uses a blocking delay.
+1. blink.fs uses a blocking delay
+ also shows use of the INIT word to launch a program on boot.
 1. btnled.fs demonstrates the use of GPIO input.
 1. blink-systick.fs uses the systick timer for non-blocking
  cooperative multitasking.

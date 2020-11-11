@@ -10,6 +10,7 @@
 
 ## Hardware
 1. VDDA (pin 5) and VDD (pin 16) must both be connected to 3.3V .
+1. VSS (pin 15) connected to 0V .
 1. NRST (pin 4) connected via a push button switch to 0V .
 1. BOOT0 (pin 1) connected to 0V .
 1. PA9 / TxD (pin 17) connected to RxD on USB/TTL UART.

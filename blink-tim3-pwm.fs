@@ -29,7 +29,7 @@ TIM3 $2C + constant TIM3_ARR ( auto-reload register )
 ;
 TIM3 $34 + constant TIM3_CCR1 ( capture/compare register 1 ) 
 : setDutyCycle ( -- ) \ set duty cycle at 50% or 1000 clock ticks / 2
-    1000 100 / TIM3_CCR1 h!
+    1000 2 / TIM3_CCR1 h!
 ;
 TIM3 $14 + constant TIM3_EGR ( event generation register ) 
 : tim3Upd ( -- ) \ generate an update event to load registers

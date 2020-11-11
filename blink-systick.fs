@@ -1,4 +1,6 @@
 \ blink-systick.fs -- uses the systick timer to blink LED on PA5.
+\ IMPORTANT: A dangling systick instruppt vector results if a different program is subsequently loaded.
+\  The symptom being "unhandled interupt 003!". Recover by resetting the MCU and reloading.
 
 forgetram
 compiletoram
@@ -12,15 +14,8 @@ compiletoram
     then
 ;
 
-$E000E010 CONSTANT STK_CSR	\ SysTick control and status register. R/W reset value = $0000 0004. See PM0215, 4.4.1, pg 86.
-$E000E014 CONSTANT STK_RVR	\ SysTick reload value register. R/W reset value = 6000 for the STM32F0
-: initSystick ( -- )
-    ['] systickISR irq-systick ! \ point vector of systick IRQ to systickISR. The ['] construct is to go into interpreter mode to get the address of systickISR, then return to compile mode.
+#include 1msSystick.fs
 
-    \ Setup and run systick timer with 1ms period.
-    8000 1- STK_RVR ! \ The systick timer is fed from the 8MHz processor clock. To have a 1ms period, a divider of 8000 - 1 = 7999 is required.
-    %111 STK_CSR bis! \ systick: processor clock source, interrupt generated, systick counter enabled. bis is bits (plural) set to the mask 0b111, other positions are unaffected.
-;
 
 
 \ LED on PA5 is active high.

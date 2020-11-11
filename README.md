@@ -8,6 +8,7 @@
 1. blink-tim3-pwm.fs demonstrates PWM.
 1. clockspeed.fs shows how to change clock speed between 8MHz and 48MHz.
 1. ledTgl.fs shows the use of debounce state machine.
+ Also demonstrates use of mecrisp-stellaris case word.
 
 ## Hardware
 1. VDDA (pin 5) and VDD (pin 16) must both be connected to 3.3V .

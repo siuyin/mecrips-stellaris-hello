@@ -37,6 +37,10 @@ ADC $0 + constant ADC_ISR ( interrupt and status register )
         1 ADC_ISR bic! \ reset adc ready flag by writing a 1 to bit 0 of ADC_ISR
     then
 ;
+ADC $40 + constant ADC_DR ( data register ) 
+: adDat ( -- n ) \ output ADC data register
+    ADC_DR h@
+;
 
 : adCal ( -- ) \ calibrate ADC
     adEn? if        
@@ -101,10 +105,6 @@ ADC $14 + constant ADC_SMPR ( sampling time register )
     then
 ;
 
-ADC $40 + constant ADC_DR ( data register ) 
-: adDat ( -- n ) \ output ADC data register
-    ADC_DR h@
-;
 : adConv ( n -- n ) \ samples and convert ADC channel n
     1 swap lshift adCh \ set channel
     adClrEndConvFlag
@@ -119,10 +119,15 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
     %11 7 2* lshift GPIOA_MODER bis!
 ;
 
+: adRecal ( -- )
+    adDis
+    adCal
+    adWaitCal
+    adEn
+;
+
 : InitADC ( -- )
     adEn? not if \ only initialise if not already enabled
-        adCal
-        adWaitCal
 
         rcAdEn
         adEn
@@ -153,8 +158,6 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 
 
 
-InitADC
-
 
 6 buffer: buf
 : 3Conv ( -- )
@@ -167,6 +170,16 @@ InitADC
     buf 2+ h@ . 
     buf 4 + h@ . cr
 ;
+
+0 variable p7val
+: 64s ( -- ) 
+    0 p7val !
+    64 0 do AIn7 p7val +! loop
+    p7val @ 64 / .
+;
+InitADC
+adRecal
+3Conv 3Dump
 
 compiletoram
 

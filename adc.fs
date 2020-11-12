@@ -103,7 +103,7 @@ ADC $14 + constant ADC_SMPR ( sampling time register )
 
 ADC $40 + constant ADC_DR ( data register ) 
 : adDat ( -- n ) \ output ADC data register
-    ADC_DR @
+    ADC_DR h@
 ;
 : adConv ( n -- n ) \ samples and convert ADC channel n
     1 swap lshift adCh \ set channel

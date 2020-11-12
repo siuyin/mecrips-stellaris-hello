@@ -3,6 +3,8 @@
 forgetram
 compiletoram
 
+\ compiletoflash
+
 
 $40000400 constant TIM3 ( General-purpose-timers ) 
 TIM3 $18 + constant TIM3_CCMR1_Output ( capture/compare mode register 1 output  mode ) 

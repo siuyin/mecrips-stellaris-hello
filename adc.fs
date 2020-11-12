@@ -155,4 +155,18 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 
 InitADC
 
+
+6 buffer: buf
+: 3Conv ( -- )
+    Temp buf h!
+    Vref buf 2+ h!
+    AIn7 buf 4 + h!
+;
+: 3Dump ( -- )
+    buf h@ .
+    buf 2+ h@ . 
+    buf 4 + h@ . cr
+;
+
 compiletoram
+

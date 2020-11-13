@@ -3,7 +3,8 @@
 \ This program must be loaded before memmap.fs as it provided the pretty printing legend for generic 32 bit prints
 \ Also included is "bin." which prints the binary form of a number with no spaces between numbers for easy copy and pasting purposes
 
-compiletoflash
+\ compiletoflash
+compiletoram
 
 : b32loop. ( u -- ) \ print 32 bits in 1 bit groups
 0  <#

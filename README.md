@@ -12,6 +12,7 @@
 1. 1msSystick.fs is a reusable module to provide the initSystick word.
 1. adc.fs provides ADC related routines.
  Also shows use of buffer: forth word.
+1. extIntr.fs demonstates the use of the External Interrupt feature.
 
 ## Hardware
 1. VDDA (pin 5) and VDD (pin 16) must both be connected to 3.3V .

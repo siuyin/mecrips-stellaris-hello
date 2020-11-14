@@ -161,11 +161,25 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 
 6 buffer: buf
 : 3Conv ( -- )
-    Temp buf h!
-    Vref buf 2+ h!
-    AIn7 buf 4 + h!
+    AIn7 buf h!
+    Temp buf 2+ h!
+    Vref buf 4 + h!
 ;
-: 3Dump ( -- )
+: SqConv ( -- ) \ sequential convertion
+    1 7 lshift
+    1 16 lshift
+    1 17 lshift
+    + + adCh \ select AIn7, temperature sensor and internal voltage reference to be sequentially converted.
+
+    adClrEndConvFlag
+    adStart
+    3 0 do 
+        begin adEndConv? until
+        adClrEndConvFlag
+        adDat buf i 2* + h!
+    loop
+;
+: 3Dump ( -- ) \ AIn7, Temp Sensor, VRef
     buf h@ .
     buf 2+ h@ . 
     buf 4 + h@ . cr
@@ -179,7 +193,9 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 ;
 InitADC
 adRecal
+
 3Conv 3Dump
+SqConv 3Dump
 
 compiletoram
 

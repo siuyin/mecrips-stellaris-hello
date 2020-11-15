@@ -156,15 +156,15 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 
 
 6 buffer: adConvBuf
-\ Conv3 triggers 3 separate conversions which are stored in adConvBuf.
-: Conv3 ( -- )
+\ ADConv3 triggers 3 separate conversions which are stored in adConvBuf.
+: ADConv3 ( -- )
     AIn7 adConvBuf h!
     Temp adConvBuf 2+ h!
     Vref adConvBuf 4 + h!
 ;
 
-\ ConvSq triggers a sequential conversion. The results are stored in adConvBuf.
-: ConvSq ( -- ) \ sequential convertion
+\ ADConvSq triggers a sequential conversion. The results are stored in adConvBuf.
+: ADConvSq ( -- ) \ sequential convertion
     1 7 lshift
     1 16 lshift
     1 17 lshift
@@ -179,16 +179,16 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
     loop
 ;
 
-\ Dump3 displays adConvBuf.
-: Dump3 ( -- ) \ AIn7, Temp Sensor, VRef
+\ ADDump3 displays adConvBuf.
+: ADDump3 ( -- ) \ AIn7, Temp Sensor, VRef
     adConvBuf h@ .
     adConvBuf 2+ h@ . 
     adConvBuf 4 + h@ . cr
 ;
 
 0 variable p7val
-\ A7Samp64 samples AIn7 64 times and averages the samples.
-: A7Samp64 ( -- ) 
+\ AD7Samp64 samples AIn7 64 times and averages the samples.
+: AD7Samp64 ( -- ) 
     0 p7val !
     64 0 do AIn7 p7val +! loop
     p7val @ 64 / .
@@ -217,9 +217,9 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 InitADC
 ADRecal
 
-Conv3 Dump3
-ConvSq Dump3
-A7Samp64
+ADConv3 ADDump3
+ADConvSq ADDump3
+AD7Samp64
 
 compiletoram
 

@@ -5,18 +5,21 @@
 forgetram
 compiletoram
 
+\ -------------------- SysTick ISR installation ------------------------------------
+
 0 variable Tick
-0 variable BlinkCnt
+0 variable blinkCnt
 : systickISR ( -- )
     Tick @ 1+ Tick ! \ increment Tick
-    BlinkCnt @ 0 > if \ decrement BlinkCnt to 0. Reset in Blink routine
-        BlinkCnt @ 1- BlinkCnt !
+    blinkCnt @ 0 > if \ decrement blinkCnt to 0. Reset in Blink routine
+        blinkCnt @ 1- blinkCnt !
     then
 ;
 
 #include 1msSystick.fs
 
 
+\ --------------------------------- LED routines ------------------------------------------------
 
 \ LED on PA5 is active high.
 $48000000 constant GPIOA		 
@@ -45,18 +48,25 @@ GPIOA $14 + constant GPIOA_ODR ( GPIO port output data register )
         ledOn
     then
 ;
+
+\ ---------------------------- User level routines --------------------------
+
+\ Blink blink the LED connected to PA5.
 : Blink ( -- )
+    cr ." Press <enter> key to exit"
     initLED
     initSystick
     begin
-        BlinkCnt @ 0= if
+        blinkCnt @ 0= if
             ledTgl
-            500 BlinkCnt ! \ reload blink count to n milliseconds
+            500 blinkCnt ! \ reload blink count to n milliseconds
         then
         key?
     until
 ;
 
+\ -------------------------------- main ----------------------------------
 
 Blink
+
 compiletoram

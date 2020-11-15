@@ -163,12 +163,15 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
     Vref adConvBuf 4 + h!
 ;
 
-\ ADConvSq triggers a sequential conversion. The results are stored in adConvBuf.
-: ADConvSq ( -- ) \ sequential convertion
+: adSelect3 ( -- )
     1 7 lshift
     1 16 lshift
     1 17 lshift
     + + adCh \ select AIn7, temperature sensor and internal voltage reference to be sequentially converted.
+;
+\ ADConvSq triggers a sequential conversion. The results are stored in adConvBuf.
+: ADConvSq ( -- ) \ sequential convertion
+    adSelect3
 
     adClrEndConvFlag
     adStart
@@ -177,6 +180,53 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
         adClrEndConvFlag
         adDat adConvBuf i 2* + h!
     loop
+;
+
+$40020000 constant DMA ( DMA controller ) 
+DMA $8 + constant DMA_CCR1 ( DMA channel configuration register  DMA_CCR ) 
+: dmEn1? ( -- ) \ is DMA enabled
+    1 DMA_CCR1 bit@ \ is DMA channel 1 enabled?
+;
+ADC $C + constant ADC_CFGR1 ( configuration register 1 ) 
+: dmEn1 ( 1/0 -- ) \ enable/disable DMA channel 1
+    0= if
+        1 DMA_CCR1 bic!
+        1 ADC_CFGR1 bic! \ disable DMA on ADC as well
+    else
+        1 DMA_CCR1 bis!
+        1 ADC_CFGR1 bis! \ enable DMA on ADC as well
+    then
+;
+: cfgDMA ( -- )
+    %01 10 lshift DMA_CCR1 bis! \ transfer 16-bit data to adConvBuf memory
+    %01 8 lshift DMA_CCR1 bis! \ get 16-bit data from ADC peripheral
+    %1 7 lshift DMA_CCR1 bis! \ increment adConvBuf memory address after each transfer
+    \ %1 5 lshift DMA_CCR1 bic! \ do not increment ADC peripheral address after each transfer. reset default
+
+;
+DMA $10 + constant DMA_CPAR1 ( DMA channel 1 peripheral address  register ) 
+DMA $14 + constant DMA_CMAR1 ( DMA channel 1 memory address  register ) 
+DMA $C + constant DMA_CNDTR1 ( DMA channel 1 number of data  register ) 
+RCC $14 + constant RCC_AHBENR ( AHB Peripheral Clock enable register  RCC_AHBENR ) 
+: adDMAOneS ( -- )
+    1 RCC_AHBENR bis! \ send clock to DMA
+    \ 1 1 lshift ADC_CFGR1 bic! \ keep at 0, reset condition for DMA one-shot mode
+
+    0 dmEn1 \ disable DMA channel 1 for configuration
+    ADC_DR DMA_CPAR1 ! \ point DMA channel 1 to the ADC
+
+    adConvBuf DMA_CMAR1 ! \ point DMA channel 1 to write to adConvBuf
+
+    3 DMA_CNDTR1 ! \ tell DMA channel 1 there are 3 items to be transferred
+    
+    cfgDMA
+    1 dmEn1 \ configuration done, enable DMA channel 1
+;
+\ ADConvDMA triggers a sequential conversion. Data is DMA'ed to adConvBuf.
+: ADConvDMA ( -- )
+    adSelect3
+    adDMAOneS
+    adStart
 ;
 
 \ ADDump3 displays adConvBuf.
@@ -217,9 +267,11 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 InitADC
 ADRecal
 
-ADConv3 ADDump3
+\ ADConv3 ADDump3
 ADConvSq ADDump3
-AD7Samp64
+\ AD7Samp64
+
+ADConvDMA ADDump3
 
 compiletoram
 

@@ -11,7 +11,8 @@
  Also demonstrates use of mecrisp-stellaris case word.
 1. 1msSystick.fs is a reusable module to provide the initSystick word.
 1. adc.fs provides ADC related routines.
- Also shows use of buffer: forth word.
+ Also shows use of buffer: forth word, sequential DMA conversion and
+ DMA transfers.
 1. extIntr.fs demonstates the use of the External Interrupt feature.
 
 ## Hardware

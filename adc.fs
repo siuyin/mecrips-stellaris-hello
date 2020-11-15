@@ -4,6 +4,10 @@
 forgetram
 compiletoram
 
+
+\ ---------------- ADC low level routines ----------------------------
+
+
 $40012400 constant ADC ( Analog-to-digital converter ) 
 $40021000 constant RCC ( Reset and clock control ) 
 
@@ -64,7 +68,6 @@ ADC $40 + constant ADC_DR ( data register )
 : adCalFactor ( -- n) \ 7-bit calibration factor
     ADC_DR @ $7f and \ the calibration factor is in bits [6:0]
 ;
-
 : adRdy? ( -- flag ) \ is the ADC ready?
     1 ADC_ISR bit@
 ;
@@ -72,6 +75,12 @@ ADC $40 + constant ADC_DR ( data register )
     begin
         adRdy?
     until
+;
+: adOvr?
+    1 4 lshift ADC_ISR bit@ \ check if overrun flag is set
+;
+: adClrOvr
+    1 4 lshift ADC_ISR bis! \ reset overrun flag by writing 1 to the bit
 ;
 : adStart ( -- ) \ start ADC conversion for the channels configured in adCh
     1 2 lshift ADC_CR bis!
@@ -105,7 +114,19 @@ ADC $14 + constant ADC_SMPR ( sampling time register )
     then
 ;
 
-: adConv ( n -- n ) \ samples and convert ADC channel n
+
+\ ----------------------------- ADC user level routines ---------------------------------------
+
+\ ADRecal recalibrates the ADC to remove offsets due to Vdd and temperature changes.
+: ADRecal ( -- )
+    adDis
+    adCal
+    adWaitCal
+    adEn
+;
+
+\ ADConv samples and converts ADC channel n
+: ADConv ( n -- n )
     1 swap lshift adCh \ set channel
     adClrEndConvFlag
     adStart
@@ -118,12 +139,51 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 : gp7An ( -- ) \ set port PA7 for analog function
     %11 7 2* lshift GPIOA_MODER bis!
 ;
+\ AIn7 converts analog input 7 on PA7.
+: AIn7 ( -- n ) 
+    7 ADConv
+;
+\ Temp converts the chip-internal temperature sensor.
+: Temp ( -- n ) 
+    16 ADConv
+;
+\ VRef converts the chip-internal voltage reference. Approx. 1.22 Vdc.
+: VRef ( -- n ) 
+    17 ADConv
+;
 
-: adRecal ( -- )
-    adDis
-    adCal
-    adWaitCal
-    adEn
+
+6 buffer: adConvBuf
+: Conv3 ( -- )
+    AIn7 adConvBuf h!
+    Temp adConvBuf 2+ h!
+    Vref adConvBuf 4 + h!
+;
+: ConvSq ( -- ) \ sequential convertion
+    1 7 lshift
+    1 16 lshift
+    1 17 lshift
+    + + adCh \ select AIn7, temperature sensor and internal voltage reference to be sequentially converted.
+
+    adClrEndConvFlag
+    adStart
+    3 0 do 
+        begin adEndConv? until
+        adClrEndConvFlag
+        adDat adConvBuf i 2* + h!
+    loop
+;
+: Dump3 ( -- ) \ AIn7, Temp Sensor, VRef
+    adConvBuf h@ .
+    adConvBuf 2+ h@ . 
+    adConvBuf 4 + h@ . cr
+;
+
+0 variable p7val
+: 64s ( -- ) 
+    0 p7val !
+    64 0 do AIn7 p7val +! loop
+    p7val @ 64 / .
 ;
 
 : InitADC ( -- )
@@ -144,58 +204,13 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
     then
 ;
 
+\ ************************************************* main ***********************************************
 
-
-: Temp ( -- n ) 
-    16 adConv
-;
-: VRef ( -- n ) 
-    17 adConv
-;
-: AIn7 ( -- n ) 
-    7 adConv
-;
-
-
-
-
-6 buffer: buf
-: 3Conv ( -- )
-    AIn7 buf h!
-    Temp buf 2+ h!
-    Vref buf 4 + h!
-;
-: SqConv ( -- ) \ sequential convertion
-    1 7 lshift
-    1 16 lshift
-    1 17 lshift
-    + + adCh \ select AIn7, temperature sensor and internal voltage reference to be sequentially converted.
-
-    adClrEndConvFlag
-    adStart
-    3 0 do 
-        begin adEndConv? until
-        adClrEndConvFlag
-        adDat buf i 2* + h!
-    loop
-;
-: 3Dump ( -- ) \ AIn7, Temp Sensor, VRef
-    buf h@ .
-    buf 2+ h@ . 
-    buf 4 + h@ . cr
-;
-
-0 variable p7val
-: 64s ( -- ) 
-    0 p7val !
-    64 0 do AIn7 p7val +! loop
-    p7val @ 64 / .
-;
 InitADC
-adRecal
+ADRecal
 
-3Conv 3Dump
-SqConv 3Dump
+Conv3 Dump3
+ConvSq Dump3
 
 compiletoram
 

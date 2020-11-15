@@ -143,10 +143,12 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 : AIn7 ( -- n ) 
     7 ADConv
 ;
+
 \ Temp converts the chip-internal temperature sensor.
 : Temp ( -- n ) 
     16 ADConv
 ;
+
 \ VRef converts the chip-internal voltage reference. Approx. 1.22 Vdc.
 : VRef ( -- n ) 
     17 ADConv
@@ -154,11 +156,14 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 
 
 6 buffer: adConvBuf
+\ Conv3 triggers 3 separate conversions which are stored in adConvBuf.
 : Conv3 ( -- )
     AIn7 adConvBuf h!
     Temp adConvBuf 2+ h!
     Vref adConvBuf 4 + h!
 ;
+
+\ ConvSq triggers a sequential conversion. The results are stored in adConvBuf.
 : ConvSq ( -- ) \ sequential convertion
     1 7 lshift
     1 16 lshift
@@ -173,6 +178,8 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
         adDat adConvBuf i 2* + h!
     loop
 ;
+
+\ Dump3 displays adConvBuf.
 : Dump3 ( -- ) \ AIn7, Temp Sensor, VRef
     adConvBuf h@ .
     adConvBuf 2+ h@ . 
@@ -180,7 +187,8 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
 ;
 
 0 variable p7val
-: 64s ( -- ) 
+\ A7Samp64 samples AIn7 64 times and averages the samples.
+: A7Samp64 ( -- ) 
     0 p7val !
     64 0 do AIn7 p7val +! loop
     p7val @ 64 / .
@@ -211,6 +219,7 @@ ADRecal
 
 Conv3 Dump3
 ConvSq Dump3
+A7Samp64
 
 compiletoram
 

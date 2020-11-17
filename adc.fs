@@ -114,12 +114,29 @@ ADC $14 + constant ADC_SMPR ( sampling time register )
     then
 ;
 
+$40020000 constant DMA ( DMA controller ) 
+DMA $8 + constant DMA_CCR1 ( DMA channel configuration register  DMA_CCR ) 
+: dmEn1? ( -- ) \ is DMA enabled
+    1 DMA_CCR1 bit@ \ is DMA channel 1 enabled?
+;
+ADC $C + constant ADC_CFGR1 ( configuration register 1 ) 
+: dmEn1 ( 1/0 -- ) \ enable/disable DMA channel 1
+    0= if
+        1 DMA_CCR1 bic!
+        1 ADC_CFGR1 bic! \ disable DMA on ADC as well
+    else
+        1 DMA_CCR1 bis!
+        1 ADC_CFGR1 bis! \ enable DMA on ADC as well
+    then
+;
+
 
 \ ----------------------------- ADC user level routines ---------------------------------------
 
 \ ADRecal recalibrates the ADC to remove offsets due to Vdd and temperature changes.
 : ADRecal ( -- )
     adDis
+    0 dmEn1 \ disable DMA channel 1
     adCal
     adWaitCal
     adEn
@@ -182,21 +199,6 @@ GPIOA $0 + constant GPIOA_MODER ( GPIO port mode register )
     loop
 ;
 
-$40020000 constant DMA ( DMA controller ) 
-DMA $8 + constant DMA_CCR1 ( DMA channel configuration register  DMA_CCR ) 
-: dmEn1? ( -- ) \ is DMA enabled
-    1 DMA_CCR1 bit@ \ is DMA channel 1 enabled?
-;
-ADC $C + constant ADC_CFGR1 ( configuration register 1 ) 
-: dmEn1 ( 1/0 -- ) \ enable/disable DMA channel 1
-    0= if
-        1 DMA_CCR1 bic!
-        1 ADC_CFGR1 bic! \ disable DMA on ADC as well
-    else
-        1 DMA_CCR1 bis!
-        1 ADC_CFGR1 bis! \ enable DMA on ADC as well
-    then
-;
 : cfgDMA ( -- )
     %01 10 lshift DMA_CCR1 bis! \ transfer 16-bit data to adConvBuf memory
     %01 8 lshift DMA_CCR1 bis! \ get 16-bit data from ADC peripheral

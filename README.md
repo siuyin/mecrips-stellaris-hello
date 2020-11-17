@@ -14,6 +14,7 @@
  Also shows use of buffer: forth word, sequential DMA conversion and
  DMA transfers.
 1. extIntr.fs demonstates the use of the External Interrupt feature.
+1. usonic.fs has routines for the HC-SR04 ultrasonic range finder.
 
 ## Hardware
 1. VDDA (pin 5) and VDD (pin 16) must both be connected to 3.3V .

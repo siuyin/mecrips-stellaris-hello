@@ -145,6 +145,8 @@ TIM3 $8 + constant TIM3_SMCR ( slave mode control register )
     1 TIM3_CR1 bis! \ enable clock to timer 3
 ;
 
+\ TmrMeas measures pulse duration and outputs distance estimate in millimeters
+
 TIM3 $10 + constant TIM3_SR ( status register ) 
 : clrCapFlg ( -- )
     1 1 lshift TIM3_SR bic! \ clear capture 1 flag

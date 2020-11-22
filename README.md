@@ -16,6 +16,9 @@
 1. extIntr.fs demonstates the use of the External Interrupt feature.
 1. usonic.fs has routines for the HC-SR04 ultrasonic range finder.
 1. rtc.fs demonstrates use of the RealTime Clock.
+1. wd.fs and wd-trig.fs demonstrate use of the watchdog timer.
+ First load wd.fs to install a blink on reset routine.
+ Then load wd-trig.fs to start the watchdog for a 3s timeout.
 
 ## Hardware
 1. VDDA (pin 5) and VDD (pin 16) must both be connected to 3.3V .

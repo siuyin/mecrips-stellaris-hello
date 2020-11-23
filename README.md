@@ -19,6 +19,7 @@
 1. wd.fs and wd-trig.fs demonstrate use of the watchdog timer.
  First load wd.fs to install a blink on reset routine.
  Then load wd-trig.fs to start the watchdog for a 3s timeout.
+1. spi.fs uses the SPI interface to control a MCP4141 digital potentiometer.
 
 ## Hardware
 1. VDDA (pin 5) and VDD (pin 16) must both be connected to 3.3V .
